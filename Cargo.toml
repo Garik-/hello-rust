@@ -9,6 +9,8 @@ edition = "2021"
 clap = { version = "4.1.1", features = ["derive", "env"] }
 dotenv = "0.15.0"
 log = "0.4"
+tokio = { version = "1.24.2", features = ["full"] }
 tracing-subscriber = { version = "0.3.16", features = ["json"] }
+warp = "0.3.3"
 
 [dev-dependencies]

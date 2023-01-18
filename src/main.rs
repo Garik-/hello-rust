@@ -1,31 +1,32 @@
-use clap::Parser;
-use dotenv::dotenv;
-use log::info;
-use std::net::Ipv4Addr;
+mod config;
+use log::{debug, error, info};
+use tokio::signal;
+use warp;
+use warp::Filter;
 
-/// My Awesome Application
-#[derive(Parser, Debug)]
-#[command(author, version, about)]
-pub struct Config {
-    /// IPv4 address
-    #[arg(short, long, env("HELLO_RUST_ADDR"), default_value = "0.0.0.0")]
-    pub ipaddr: Ipv4Addr,
-
-    /// Port number
-    #[arg(short, long, env("HELLO_RUST_PORT"), default_value_t = 3000)]
-    pub port: u16,
-}
-
-impl Config {
-    pub fn from_env_and_args() -> Self {
-        dotenv().ok();
-        Self::parse()
-    }
-}
-
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt().json().init();
 
-    let cfg = Config::from_env_and_args();
+    let cfg = config::Config::from_env_and_args();
     info!("config {}:{}", cfg.ipaddr, cfg.port);
+
+    let routes = warp::any().map(|| "Hello, World!");
+
+    let stream = signal::ctrl_c();
+
+    let (_, server) =
+        warp::serve(routes).bind_with_graceful_shutdown((cfg.ipaddr, cfg.port), async move {
+            debug!("waiting for signal");
+            _ = stream.await;
+            debug!("done waiting for signal");
+        });
+
+    match tokio::join!(tokio::task::spawn(server)).0 {
+        Ok(()) => info!("serving"),
+        Err(e) => error!("ERROR: Thread join error {}", e),
+    };
+
+    info!("terminating");
+    Ok(())
 }
