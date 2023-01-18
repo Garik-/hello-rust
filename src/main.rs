@@ -1,7 +1,6 @@
 mod config;
 use log::{debug, error, info};
 use tokio::signal;
-use warp;
 use warp::Filter;
 
 #[tokio::main]
