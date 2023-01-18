@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  hello-rust:
+    container_name: "hello-rust"
+    build:
+      dockerfile: ./Dockerfile
+    environment:
+      HELLO_RUST_PORT: 3000
+    ports:
+      - "3000:3000"
+    networks:
+      - hello-rust-network
+
+networks:
+  hello-rust-network:
